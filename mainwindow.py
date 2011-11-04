@@ -1,4 +1,7 @@
-import mainwindow_ui
+from ui_mainwindow import Ui_MainWindow
+
+from PyQt4.QtCore import *
+from PyQt4.QtGui import *
 
 import config
 
@@ -40,6 +43,17 @@ def doStuff():
         except IndexError:            
             pass
 
-class MainWindow(Ui_MainWindow):
+class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self):
-        Ui_MainWindow.setupUi(self)
+        super(QMainWindow, self).__init__()
+        self.setupUi(self)
+        self.btnCheck.clicked.connect(self.check)
+        self.actionAddShow.triggered.connect(self.addShow)
+        self.btnAdd.clicked.connect(self.addShow)
+        
+    def addShow(self):
+        QMessageBox.information(self, "hello", "Add Show")
+    
+    def check(self):
+        doStuff()
+        QMessageBox.Information(self, "hello", "Checked")

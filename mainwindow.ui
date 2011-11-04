@@ -24,7 +24,7 @@
     <item row="0" column="0">
      <layout class="QVBoxLayout" name="verticalLayout">
       <item>
-       <widget class="QPushButton" name="pushButton">
+       <widget class="QPushButton" name="btnCheck">
         <property name="font">
          <font>
           <pointsize>20</pointsize>
@@ -32,6 +32,9 @@
         </property>
         <property name="text">
          <string>Check!</string>
+        </property>
+        <property name="default">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
@@ -46,7 +49,7 @@
        <widget class="QListWidget" name="listWidget"/>
       </item>
       <item>
-       <widget class="QPushButton" name="pushButton_2">
+       <widget class="QPushButton" name="btnAdd">
         <property name="text">
          <string>&amp;Add TV Show</string>
         </property>
@@ -57,6 +60,22 @@
    </layout>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionRemoveShow">
+   <property name="text">
+    <string>RemoveShow</string>
+   </property>
+   <property name="shortcut">
+    <string>Del</string>
+   </property>
+  </action>
+  <action name="actionAddShow">
+   <property name="text">
+    <string>AddShow</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+A</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>
