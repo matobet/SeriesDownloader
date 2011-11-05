@@ -11,32 +11,28 @@ from lxml import etree
 import re
 import webbrowser
 
-WATCHED_SHOWS = ['House',                  
-                 'The Big Bang Theory',                  
-                 'South Park',                  
-                 'Fringe',                  
-                 'How I Met Your Mother',                  
-                 'Dexter',                  
-                 'Chuck',                  
-                 'Family Guy',                 
-                 'American Dad',              
-                 'Futurama']
-
 class MainWindow(QMainWindow, Ui_MainWindow):
+
     def __init__(self):
         super(QMainWindow, self).__init__()
         self.setupUi(self)
-        self.btnCheck.clicked.connect(self.check)
-        self.actionAddShow.triggered.connect(self.addShow)
-        self.addAction(self.actionAddShow)
-        self.btnAdd.clicked.connect(self.addShow)
-        self.addAction(self.actionRemoveShow)
-        self.actionRemoveShow.triggered.connect(self.removeShow)
-        self.listWidget.setSortingEnabled(True)
+        self.connect_slots()
         self.shows = config.load()
+        self.listWidget.setSortingEnabled(True)
         self.updateListWidget()
+
+    def connect_slots(self):
+        self.addAction(self.actionAddShow)
+        self.addAction(self.actionRemoveShow)
         
-    def addShow(self):
+        self.btnCheck.clicked.connect(self.check)
+        
+        self.actionAddShow.triggered.connect(self.add_show)
+        self.btnAdd.clicked.connect(self.add_show)
+        
+        self.actionRemoveShow.triggered.connect(self.remove_show)
+                
+    def add_show(self):
         dlg = AddShowDialog(self)
         dlg.exec_()
         if dlg.result() == QDialog.Accepted:
@@ -46,33 +42,43 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.updateListWidget()
             config.save(self.shows)
         
-    def removeShow(self):
-        show = self.listWidget.currentItem().text()
-        self.shows.remove(show)
+    def remove_show(self):
+        item = self.listWidget.currentItem()
+        if item is None: return
+        self.shows.remove(item.text())
         self.updateListWidget()
         config.save(self.shows)
         
     def updateListWidget(self):
         self.listWidget.clear()
         self.listWidget.addItems(self.shows)
+        
+    def keyReleaseEvent(self, event):
+        if event.key() == Qt.Key_Escape:
+            QApplication.instance().exit()
+            
+        return QMainWindow.keyReleaseEvent(self, event)
     
     def check(self):
       
         response = urllib2.urlopen(config.RSS_URL)    
         xml = etree.parse(response)    
         items  = xml.findall('/channel/item')     
+        news = []
         for item in items:        
             title = item.findtext('title')        
             if not self.watched(title): continue        
             content = item.findtext('{http://purl.org/rss/1.0/modules/content/}encoded')        
-            print(title)        
             try:            
                 downloadLinks = [match[0] for match in re.findall(r'<a href="(http://www.(fileserve|filesonic|wupload).com/[^"]+)">', content)]            
-                webbrowser.open(downloadLinks[0])        
+                webbrowser.open(downloadLinks[0])
+                news.append(title)        
             except IndexError:            
                 pass
 
-        QMessageBox.information(self, "hello", "Checked") 
+        message = "There are no new shows today for you :-(" if len(news) == 0 else \
+            'These shows aired today:\n\n' + '\n'.join(news) + '\n\nYou will find links to them already opened in your browser.'
+        QMessageBox.information(self, "Series Check", message) 
 
     def watched(self, title):    
         for show in self.shows:       
