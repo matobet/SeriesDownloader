@@ -4,6 +4,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 import config
+from addshowdialog import AddShowDialog
 
 import urllib2    
 from lxml import etree
@@ -18,30 +19,8 @@ WATCHED_SHOWS = ['House',
                  'Dexter',                  
                  'Chuck',                  
                  'Family Guy',                 
-                 'American Dad'              
+                 'American Dad',              
                  'Futurama']
-
-def watched(title):    
-    for show in WATCHED_SHOWS:       
-        if title.startswith(show):            
-            return True    
-    return False
-
-def doStuff():    
-      
-    response = urllib2.urlopen(config.RSS_URL)    
-    xml = etree.parse(response)    
-    items  = xml.findall('/channel/item')     
-    for item in items:        
-        title = item.findtext('title')        
-        if not watched(title): continue        
-        content = item.findtext('{http://purl.org/rss/1.0/modules/content/}encoded')        
-        print(title)        
-        try:            
-            downloadLinks = [match[0] for match in re.findall(r'<a href="(http://www.(fileserve|filesonic|wupload).com/[^"]+)">', content)]            
-            webbrowser.open(downloadLinks[0])        
-        except IndexError:            
-            pass
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self):
@@ -53,13 +32,50 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.btnAdd.clicked.connect(self.addShow)
         self.addAction(self.actionRemoveShow)
         self.actionRemoveShow.triggered.connect(self.removeShow)
+        self.listWidget.setSortingEnabled(True)
+        self.shows = config.load()
+        self.updateListWidget()
         
     def addShow(self):
-        QMessageBox.information(self, "hello", "Add Show")
+        dlg = AddShowDialog(self)
+        dlg.exec_()
+        if dlg.result() == QDialog.Accepted:
+            show = dlg.show_name
+            if show in self.shows: return 
+            self.shows.append(show)
+            self.updateListWidget()
+            config.save(self.shows)
         
     def removeShow(self):
-        QMessageBox.information(self, "hello", "remove show")
+        show = self.listWidget.currentItem().text()
+        self.shows.remove(show)
+        self.updateListWidget()
+        config.save(self.shows)
+        
+    def updateListWidget(self):
+        self.listWidget.clear()
+        self.listWidget.addItems(self.shows)
     
     def check(self):
-        doStuff()
-        QMessageBox.information(self, "hello", "Checked")
+      
+        response = urllib2.urlopen(config.RSS_URL)    
+        xml = etree.parse(response)    
+        items  = xml.findall('/channel/item')     
+        for item in items:        
+            title = item.findtext('title')        
+            if not self.watched(title): continue        
+            content = item.findtext('{http://purl.org/rss/1.0/modules/content/}encoded')        
+            print(title)        
+            try:            
+                downloadLinks = [match[0] for match in re.findall(r'<a href="(http://www.(fileserve|filesonic|wupload).com/[^"]+)">', content)]            
+                webbrowser.open(downloadLinks[0])        
+            except IndexError:            
+                pass
+
+        QMessageBox.information(self, "hello", "Checked") 
+
+    def watched(self, title):    
+        for show in self.shows:       
+            if title.startswith(show):            
+                return True    
+        return False
