@@ -49,11 +49,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         self.btnCheck.clicked.connect(self.check)
         self.actionAddShow.triggered.connect(self.addShow)
+        self.addAction(self.actionAddShow)
         self.btnAdd.clicked.connect(self.addShow)
+        self.addAction(self.actionRemoveShow)
+        self.actionRemoveShow.triggered.connect(self.removeShow)
         
     def addShow(self):
         QMessageBox.information(self, "hello", "Add Show")
+        
+    def removeShow(self):
+        QMessageBox.information(self, "hello", "remove show")
     
     def check(self):
         doStuff()
-        QMessageBox.Information(self, "hello", "Checked")
+        QMessageBox.information(self, "hello", "Checked")
